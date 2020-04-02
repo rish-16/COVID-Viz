@@ -1,0 +1,208 @@
+<!--
+Copyright 2020 Rishabh Anand, Raphael Lee, Dr. Sebastian Maurer-Stroh, Suma Tiruvayipati. All Rights Reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+     http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>COVID19 2019/2020 Data Visualization</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="css/dc.css">
+    <link rel="stylesheet" type="text/css" href="css/leaflet.css">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Karla:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/phylotree.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://threejs.org/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/giojs@2.2.1/build/gio.min.js"></script>
+</head>
+
+<body>
+    <div class="modal micromodal-slide" id="modal-1" aria-hidden="true">
+        <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+            <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
+                <header class="modal__header">
+                    <h2 class="modal__title" id="modal-1-title"></h2>
+                    <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+                </header>
+                <main class="modal__content" id="modal-1-content">
+                    <input type="text" id="myInput" onkeyup="searchClusterTable()" placeholder="Search for names.." title="Type in a name">
+                    <table id="myTable">
+                        <tr class="header">
+                            <th id="tr-virus-name">Virus Name</th>
+                            <th id="tr-acc-id">Accession ID</th>
+                            <th id="tr-loc">Location</th>
+                            <th id="tr-date">Date</th>
+                            <th id="tr-age">Age</th>
+                            <th id="tr-gender">Gender</th>
+                            <th id="tr-subm-lab">Submission Lab</th>
+                        </tr>
+                    </table>
+                </main>
+                <footer class="modal__footer">
+                    <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+                </footer>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xs-12 dc-data-count dc-chart" id="data-count">
+                <h2 style="font-weight: bold;">COVID19 2019/2020   Tracking</h2>
+                <small>
+                    <span class="filter-count"></span> selected out of <span class="total-count"></span> records |
+                    <a id="all" href="#">Reset All</a>
+                    </span>
+                </small>
+            </div>
+        </div>
+
+        <div class="row" id="control-row">
+            <div class="col-md-6">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h4>Gender <small><a id="gender">reset</a></small></h4>
+                        <div class="dc-chart" id="chart-ring-gender"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <h4>Year <small><a id="year">reset</a></small></h4>
+                        <div class="dc-chart" id="chart-ring-year"></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-9 bar-chart">
+                        <h4>Month <small><a id="yearMonth" href="#">reset</a></small></h4>
+                        <div class="dc-chart" id="chart-bar-yearMonth"></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-9 bar-chart">
+                        <h4>Age <small><a id="barAge" href="#">reset</a></small></h4>
+                        <div class="dc-chart" id="chart-bar-age"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <h4>Geographical Locations</h4>
+                <div id="map-settings">
+                    <div id="map-style-container">
+                        <button id="ms-light">Light</button>
+                        <button id="ms-dark">Dark</button>
+                        <button id="ms-satellite">Satellite</button>
+                        <button id="ms-street">Street</button>
+                    </div>
+                    <div id="map-config">
+                        <p>Toggle cluster edges</p>
+                        <label class="switch">
+                            <input id="switch-checkbox" type="checkbox">
+                            <div class="slider round"></div>
+                        </label>
+                    </div>
+                </div>
+                <!-- <div id="map"></div> -->
+                <div id="globalArea"></div>
+                
+                <div class="row" id="control-row2">
+                    <div class="col-md-12 gendist-slider">
+                        <h4 class="nucDiffTitle">Nucleotide Differences</h4>
+                        <div class="sliderDiv" id="nucDiffThreshSlider"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <h4>RAxML Phylogenetic Tree</h4>
+                <div style="height: 1000px;" id="tree-viewer"></div>
+            </div>
+            <div class="col-md-6" style="height: 4000px;">
+                <h4 class="clusterInfo">Current clusters | <span id="num-clusters"></span></h4>
+                <div class="clusterDiv" id="clusterText">
+                    <!-- Template for cluster info card -->
+                    <!-- <div class="cluster-aggr">
+                            <div class="caggr-color"></div>
+                            <div class="caggr-meta">
+                                <p class="caggr-idx">Cluster 1</p>
+                                <p class="caggr-count">34 samples</p>
+                            </div>
+                        </div> -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="js/d3.js"></script>
+    <script type="text/javascript" src="js/crossfilter.js"></script>
+
+    <script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script>
+    <script src="https://kit.fontawesome.com/4467197cc4.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dc/2.0.0-beta.29/dc.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.2/jquery.ui.touch-punch.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.5.6/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.5.6/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.5.6/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.5.6/js/buttons.print.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/micromodal/dist/micromodal.min.js"></script>
+    <script type="text/javascript" src="js/underscore-min.js"></script>
+    <script type="text/javascript" src="js/phylocanvas.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="js/raphael-min.js"></script>
+    <script type="text/javascript" src="js/jsphylosvg-min.js"></script>
+    <script type="text/javascript" src="js/SliderControl.js"></script>
+    <script type="text/javascript" src="js/savage.toggle-switch.min.js"></script>
+    <script src="js/app.js" type="text/javascript"></script>
+</body>
+
+<script>
+    function searchClusterTable() {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("myInput");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("myTable");
+        tr = table.getElementsByTagName("tr");
+        for (i = 0; i < tr.length; i++) {
+            tds = tr[i].getElementsByTagName("td");
+            // Filtering by name
+            if (tds[0]) {
+                txtValue = tds[0].textContent || tds[0].innerHTML;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+            
+            // Filtering by location
+            if (tds[2]) {
+                txtValue = tds[2].textContent || tds[2].innerHTML;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
+</html>

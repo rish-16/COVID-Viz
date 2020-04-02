@@ -1,0 +1,506 @@
+/* Copyright 2020 Rishabh Anand, Raphael Lee, Dr. Sebastian Maurer-Stroh, Suma Tiruvayipati. All Rights Reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+     http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+============================================================================== */
+
+html, body {
+  padding: 0;
+  margin: 0;
+  font-family: "Karla", "Avenir Next";
+  background-color: #dfe6e9;
+}
+
+#map {
+  width: 100%;
+  padding-bottom: 55%;
+}
+
+#globalArea {
+  height: 600px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+div.tooltip {
+  position: absolute;
+  text-align: left;
+  white-space: normal;
+  padding: 4px;
+  font-size: 14px;
+  background: tan;
+  border: 1px solid gray;
+}
+
+.clusterTextInfo {
+  font-family: "Karla", "Avenir Next";
+  font-size: 13px;
+  font-weight: lighter;
+  font-variant: normal;
+  text-transform: uppercase;
+  color: #666666;
+  margin-top: 10px;
+  text-align: center !important;
+  letter-spacing: 0.3em;
+  display: block;
+  width: 600px;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-all;
+  white-space: normal;
+}
+
+.clusterGenDistInfo {
+  font-family: "Karla", "Avenir Next";
+  font-size: 14px;
+  font-weight: bolder;
+  text-transform: uppercase;
+}
+
+.axis {
+  opacity: 0.5;
+  font: 5px sans-serif;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+.axis .domain {
+  fill: none;
+  stroke: #000;
+  stroke-opacity: .3;
+  stroke-width: 3px;
+  stroke-linecap: round;
+}
+
+.axis .halo {
+  fill: none;
+  stroke: #a6a6a6;
+  stroke-width: 3px;
+  stroke-linecap: round;
+}
+
+.slider .handle {
+  fill: #fff;
+  stroke: #000;
+  stroke-opacity: .5;
+  stroke-width: 2.25px;
+  cursor: grab;
+}
+
+#map-settings {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding-bottom: 10px;
+}
+
+#map-config {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+}
+
+#map-config p {
+  margin: auto 10px;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 30px;
+  margin: auto 0;
+}
+
+.switch input {display:none;}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #8395a7;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #1dd1a1;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #1dd1a1;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(29px);
+  -ms-transform: translateX(29px);
+  transform: translateX(29px);
+}
+
+.slider.round {
+  border-radius: 30px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.cluster-box {
+  width: 310px !important;
+  height: auto;
+  background-color: white;
+  margin: 10px;
+  border-radius: 10px;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+#num-clusters {
+  font-size: 15px;
+}
+
+#clusterText {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+}
+
+.cluster-box .cbox-title {
+  font-size: 15px;
+  font-weight: bold;
+  padding: 5px 10px;
+}
+
+.cluster-box .cbox-location {
+  font-size: 14px;
+  padding: 0 10px;
+}
+
+.cluster-box .cbox-meta {
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+  padding: 0 10px;
+}
+
+.cluster-box .cbox-meta .cbox-age, .cluster-box .cbox-meta .cbox-gender {
+  font-size: 14px;
+  padding: 0 20px 0 0;
+}
+
+.cluster-box .cbox-meta .cbox-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 100%;
+  padding: 0;
+  margin: 0 20px 0 0;
+  background-color: red;
+}
+
+.cluster-aggr {
+  width: 45%;
+  background-color: red;
+  height: 100px;
+  border-radius: 7px;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+  margin: 5px auto;
+  flex-shrink: 0;
+  background-color: white;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+.cluster-aggr:hover {
+  cursor: pointer;
+  opacity: 0.75;
+  transform: scale(1.05);
+  transition: 0.5s;
+}
+
+.cluster-aggr .caggr-color {
+  width: 50px;
+  height: 100%;
+  padding: 0;
+}
+
+.cluster-aggr .caggr-meta {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: auto 0;
+  padding-left: 20px;
+}
+
+.cluster-aggr .caggr-meta .caggr-idx {
+  font-size: 19px;
+  font-weight: bold;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+}
+
+.cluster-aggr .caggr-meta .caggr-count {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+#cluster-modal {
+  position: absolute;
+  width: 80%;
+  height: 500px;
+  margin: 0 auto;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  right: 50%;
+  background-color: red;
+}
+
+.modal {
+  font-family: "Karla", "Avenir Next";
+}
+
+.modal__overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal__container {
+  background-color: #fff;
+  padding: 30px;
+  width: 95%;
+  max-height: 600px;
+  border-radius: 4px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal__title {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-weight: 600;
+  font-size: 19px;
+  line-height: 1.25;
+  box-sizing: border-box;
+}
+
+.modal__close {
+  background: transparent;
+  border: 0;
+}
+
+.modal__header .modal__close:before { content: "\2715"; }
+
+.modal__content {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+  color: rgba(0,0,0,.8);
+}
+
+.modal__btn {
+  font-size: 15px;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: .5rem;
+  padding-bottom: .5rem;
+  background-color: #e6e6e6;
+  color: rgba(0,0,0,.8);
+  border-radius: .25rem;
+  border-style: none;
+  border-width: 0;
+  cursor: pointer;
+  -webkit-appearance: button;
+  text-transform: none;
+  overflow: visible;
+  line-height: 1.15;
+  margin: 0;
+  will-change: transform;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  transition: -webkit-transform .25s ease-out;
+  transition: transform .25s ease-out;
+  transition: transform .25s ease-out,-webkit-transform .25s ease-out;
+}
+
+.modal__btn:focus, .modal__btn:hover {
+  -webkit-transform: scale(1.05);
+  transform: scale(1.05);
+}
+
+.modal__btn-primary {
+  background-color: #00449e;
+  color: #fff;
+}
+
+@keyframes mmfadeIn {
+    from { opacity: 0; }
+      to { opacity: 1; }
+}
+
+@keyframes mmfadeOut {
+    from { opacity: 1; }
+      to { opacity: 0; }
+}
+
+@keyframes mmslideIn {
+  from { transform: translateY(15%); }
+    to { transform: translateY(0); }
+}
+
+@keyframes mmslideOut {
+    from { transform: translateY(0); }
+    to { transform: translateY(-10%); }
+}
+
+.micromodal-slide {
+  display: none;
+}
+
+.micromodal-slide.is-open {
+  display: block;
+}
+
+.micromodal-slide[aria-hidden="false"] .modal__overlay {
+  animation: mmfadeIn .3s cubic-bezier(0.0, 0.0, 0.2, 1);
+}
+
+.micromodal-slide[aria-hidden="false"] .modal__container {
+  animation: mmslideIn .3s cubic-bezier(0, 0, .2, 1);
+}
+
+.micromodal-slide[aria-hidden="true"] .modal__overlay {
+  animation: mmfadeOut .3s cubic-bezier(0.0, 0.0, 0.2, 1);
+}
+
+.micromodal-slide[aria-hidden="true"] .modal__container {
+  animation: mmslideOut .3s cubic-bezier(0, 0, .2, 1);
+}
+
+.micromodal-slide .modal__container,
+.micromodal-slide .modal__overlay {
+  will-change: transform;
+}
+
+#myInput {
+  background-position: 10px 10px;
+  background-repeat: no-repeat;
+  width: 100%;
+  font-size: 16px;
+  padding: 12px 20px 12px 40px;
+  border: 1px solid #ddd;
+  margin-bottom: 12px;
+}
+
+#myTable {
+  border-collapse: collapse;
+  width: 100%;
+  border: 1px solid #ddd;
+  font-size: 18px;
+  overflow: scroll;
+}
+
+#myTable th, #myTable td {
+  text-align: left;
+  padding: 12px;
+  height: auto;
+}
+
+#myTable td {
+  font-size: 14px;
+}
+
+#myTable tr {
+  border-bottom: 1px solid #ddd;
+}
+
+#myTable tr:hover {
+  background-color: #f1f1f1;
+}
+
+#myTable .header #tr-virus-name {
+  position: relative;
+  background-color: red;
+  width: 10%;
+  background-color: red;
+}
+
+#myTable .header #tr-acc-id {
+  position: relative;
+  background-color: red;
+  width: 30%;
+}
+
+#myTable .header #tr-loc {
+  position: relative;
+  background-color: red;
+  width: 15%;
+}
+
+#myTable .header #tr-date {
+  position: relative;
+  background-color: red;
+  width: 5%;
+}
+
+#myTable .header #tr-age {
+  position: relative;
+  background-color: red;
+  width: 5%;
+}
+
+#myTable .header #tr-gender {
+  position: relative;
+  background-color: red;
+  width: 5%;
+}
+
+#myTable .header #tr-subm-lab {
+  position: relative;
+  background-color: red;
+  width: 30%;
+}
